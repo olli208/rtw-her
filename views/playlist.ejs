@@ -1,0 +1,24 @@
+<% include partials/head.ejs %>
+
+<div class="user-bg">
+    <section class="user">
+        <h1>Playlist of <span> <%= user %></span> </h1>
+    </section>
+</div>
+
+<section class="playlists">
+    <button class="refresh"></button>
+    <div class="playlistnames">
+        <% data.items.forEach(function(playlist){ %>
+        <li class="albumName">
+            <a class="getTracks" href="/playlists/<%= playlist.id %>/<%= playlist.owner.id %>">
+                <h3><%= playlist.name %></h3>
+                <img class="albumImage" src="<%= playlist.images[0].url %>">
+            </a>
+            <button class="unfollow">UNFOLLOW</button>
+        </li>
+        <% }) %>
+    </div>
+</section>
+
+<% include partials/footer.ejs %>

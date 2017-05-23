@@ -1,0 +1,18 @@
+<% include partials/head.ejs %>
+
+<section class="tracks">
+    <div class="tracks">
+        <h2>Tracks</h2>
+        <% data.items.forEach(function(track){ %>
+        <li class="">
+            <%= track.track.name %>
+        </li>
+        <% }) %>
+    </div>
+</section>
+
+<div class="genres">
+    <!-- PUT D3 STUFF HERE!-->
+</div>
+
+<% include partials/footer.ejs %>

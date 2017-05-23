@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+
+    <title>(OFFLINE</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+
+<section class="playlists">
+    <h1>Ahh! What did you do?!?!</h1>
+    <div id="cache-url">
+        <h2>kidding! it's my fault. We are fixing it!</h2>
+        <p>Here's what you can checkout in the meantime:</p>
+        <ul>
+        </ul>
+    </div>
+</section>
+
+    <script>
+        caches.open('cache-pages-v1').then(function (cache) {
+            cache.keys().then(function (cachedRequests) {
+                cachedRequests.map(function (obj) {
+                    var li = document.createElement('LI');
+                    var a = document.createElement('A');
+                    a.href = obj.url;
+                    a.innerHTML = obj.url.split('/')[obj.url.split('/').length - 1];
+
+                    li.appendChild(a);
+                    document.querySelector('ul').appendChild(li);
+                });
+            });
+        });
+    </script>
+</body>
+<footer>
+
+</footer>

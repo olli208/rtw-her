@@ -1,0 +1,199 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font: 1em 'roboto', Arial;
+    background: #222326;
+    min-height: 100vh;
+}
+
+section {
+    padding: 1em;
+    width: 100vw;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.playlists ,.intro {
+    min-height: 100vh;
+}
+
+section p, h1, h2, h3 {
+    color: #fff;
+}
+
+h1 {
+    width: 100%;
+    font-size: 3em;
+    justify-content: center;
+    color: #fff;
+}
+
+h2 {
+    font-size: 1.5em;
+    color: #fff;
+}
+
+@media (min-width: 40em) {
+    section {
+        margin: 0 auto;
+        width: 55vw;
+    }
+
+    h1 {
+        font-size: 4em;
+    }
+
+    h2 {
+        font-size: 2em;
+    }
+}
+
+@media (min-width: 60em) {
+    h1 {
+        font-size: 6em;
+    }
+
+    h2 {
+        font-size: 3em;
+    }
+}
+
+p {
+    margin: 1em 0;
+}
+
+.user-bg {
+    background: #000;
+    display: block;
+    padding: 4em 0;
+}
+
+.user {
+    height: 20vh;
+}
+
+.user h1 {
+    width: 100%;
+}
+
+.user span {
+    color: #7c25f8;
+}
+
+.spotify-btn {
+    padding: 1em 1.5em;
+    background: #7c25f8;
+    border: 0;
+    border-radius: 500px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.spotify-btn a{
+    padding: 1em 1.5em;
+    text-decoration: none;
+    color: #fff;
+}
+
+.playlistnames {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.playlistnames a {
+    text-decoration: none;
+}
+
+.albumName {
+    margin-bottom: 2em;
+    display: inline-block;
+    list-style: none;
+    width: 100%;
+}
+
+.albumName h3 {
+    font-size: 100%;
+    min-height: 4em;
+}
+
+.albumImage {
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    height: auto;
+}
+
+@media (min-width: 40em) {
+    .albumName {
+        width:50%;
+        margin-bottom: 6em;
+    }
+
+    .albumImage {
+        width: 100%;
+        height: auto;
+    }
+}
+
+.tracks h2 {
+    color: #7c25f8;
+}
+
+.genres {
+    width: 100%;
+    height: 100%;
+}
+
+.genres svg {
+    margin: 0 auto
+}
+
+.tracks li{
+    color: #fff; 
+}
+
+.unfollow {
+    border: 1px solid black;
+    background: #000;
+    color: #fff;
+    width: 100%;
+    padding: 0.5em;
+    font-weight: 700;
+    transition: .2s ease-in-out;
+}
+
+.unfollow:hover {
+    background: #666;
+    color: #f9f9f9;
+}
+
+.refresh::before {
+    content: '↻';
+}
+
+.refresh {
+    /*padding: 1em;*/
+    height: 3em;
+    width: 3em;
+    border: 0;
+    border-radius: 100%;
+    margin: 2em auto;
+    background: #000;
+    color: #666666;
+    transition: .2s ease-in;
+    font-size: 1em;
+    font-weight: 700;
+}
+
+.refresh:hover {
+    background: #7c25f8;
+    color: #fff;
+    transform: rotate(180deg);
+}

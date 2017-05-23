@@ -1,0 +1,13 @@
+# vendor packages
+/node_modules
+
+# project meta
+.idea
+.settings
+*.sublime-project
+*.sublime-workspace
+
+# npm cruft
+npm-debug.log
+
+.env
