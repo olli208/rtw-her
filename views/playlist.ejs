@@ -9,13 +9,13 @@
 <section class="playlists">
     <button class="refresh"></button>
     <div class="playlistnames">
-        <% data.items.forEach(function(playlist){ %>
+        <% data.forEach(function(playlist){ %>
         <li class="albumName">
             <a class="getTracks" href="/playlists/<%= playlist.id %>/<%= playlist.owner.id %>">
                 <h3><%= playlist.name %></h3>
                 <img class="albumImage" src="<%= playlist.images[0].url %>">
             </a>
-            <button class="unfollow">UNFOLLOW</button>
+            <button class="unfollow">unfollow</button>
         </li>
         <% }) %>
     </div>

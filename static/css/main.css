@@ -197,3 +197,7 @@ p {
     color: #fff;
     transform: rotate(180deg);
 }
+
+.genres svg:not(:last-of-type) {
+    display: none;
+}

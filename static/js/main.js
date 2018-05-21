@@ -2,69 +2,77 @@
     var socket = io();
     var music = [];
 
-    document.querySelectorAll('.unfollow').forEach(function(e) {
-        e.addEventListener('click' , unfollow)
-    })
+    // document.querySelectorAll('.unfollow').forEach(function(e) {
+    //     e.addEventListener('click' , unfollow)
+    // })
+
+    // socket.on('test' ,function(data) {
+    //     var music = data;
+    // });
 
     socket.on('playlists' ,function(data) {
         var playlistNames = document.querySelector('.playlistnames');
-        music = data;
-        var items = music.playlists.items;
 
-        playlistNames.innerHTML = '';
-        // loop to get names of a playlist
-        // aswell as user and id of playlist
-        for (var key in items) {
-            // skip loop if the property is from prototype
-            if (!items.hasOwnProperty(key)) continue;
-
-            var li = document.createElement('li');
-            var img = document.createElement('img');
-            li.className = "albumName";
-            img.className = "albumImage";
-            img.setAttribute("src", items[key].images[0].url);
-
-            li.innerHTML =
-                '<a class="getTracks" href="/playlists/' + items[key].id + '/' + items[key].owner.id + '">'
-                + '<h3>' + items[key].name + '</h3>'
-                + '<img class="albumImage" src=' + items[key].images[0].url + '>'
-                + '</a>'
-                + '<button class="unfollow" id="/' + items[key].id + '/' + items[key].owner.id + '>UNFOLLOW PLAYLIST</a>';
-            playlistNames.appendChild(li);
+        if (playlistNames) {
+            music = data;
+            var items = music.playlists.items;
+    
+            playlistNames.innerHTML = '';
+            // loop to get names of a playlist
+            // aswell as user and id of playlist
+            for (var key in items) {
+                // skip loop if the property is from prototype
+                if (!items.hasOwnProperty(key)) continue;
+    
+                var li = document.createElement('li');
+                var img = document.createElement('img');
+                li.className = "albumName";
+                img.className = "albumImage";
+                img.setAttribute("src", items[key].images[0].url);
+    
+                li.innerHTML =
+                    '<a class="getTracks" href="/playlists/' + items[key].id + '/' + items[key].owner.id + '">'
+                    + '<h3>' + items[key].name + '</h3>'
+                    + '<img class="albumImage" src=' + items[key].images[0].url + '>'
+                    + '</a>'
+                    + '<button class="unfollow">unfollow</button>';
+                playlistNames.appendChild(li);
+            }
         }
     });
 
-    function unfollow(e) {
-        var select = e.target.parentNode.querySelector('a')
-        var playlistID = select.href.split("/")[4]
-        var user = select.href.split("/")[5]
-        console.log(playlistID , user)
+    // function unfollow(e) {
+    //     var select = e.target.parentNode.querySelector('a')
+    //     var playlistID = select.href.split("/")[4]
+    //     var user = select.href.split("/")[5]
+    //     console.log(playlistID , user)
 
-        var request = new window.XMLHttpRequest();
+    //     var request = new window.XMLHttpRequest();
 
-        request.open("DELETE", "http://localhost:1000/" + playlistID + '/' + user, true);
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400) {
-              // Success!
-              console.log(request)
-            } else {
-              // No succes
-              console.log("We reached our target server, but it returned an error");
-            }
-        };
+    //     request.open("DELETE", "http://localhost:1000/" + playlistID + '/' + user, true);
+    //     request.onload = function() {
+    //         if (request.status >= 200 && request.status < 400) {
+    //           // Success!
+    //           console.log(request)
+    //         } else {
+    //           // No succes
+    //           console.log("We reached our target server, but it returned an error");
+    //         }
+    //     };
 
-        request.onerror = function () {
-            // There was a connection error of some sort
-            console.log('FATAL ERRORRRRRR')
-        };
+    //     request.onerror = function () {
+    //         // There was a connection error of some sort
+    //         console.log('FATAL ERRORRRRRR')
+    //     };
 
-        request.send();
-    }
+    //     request.send();
+    // }
 
-    socket.on('tracks', function(data) {
-        console.log('D3')
+    socket.on('genres', function(data) {
+        console.log(data);
         var genres = [];
-        data.genres[0].forEach(function (e) {
+
+        data.genres.forEach(function (e) {
             e.map(function (x) {
                 genres.push(x);
                 return genres;
@@ -142,7 +150,4 @@
             .attr('font-size' , '0.9em');
     }
 
-    document.querySelector('.refresh').addEventListener('click' , function (){
-      window.location.reload(true);
-    })
 })();

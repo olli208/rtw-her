@@ -16,8 +16,8 @@ var diff = require('deep-diff').diff; // compare objects
 
 var client_id = process.env.client_id;
 var client_secret = process.env.client_secret;
-// var redirect_uri = 'http://localhost:1000/callback'; // For local testing !!
-var redirect_uri = 'https://evening-plains-21777.herokuapp.com/callback';
+var redirect_uri = 'http://localhost:1000/callback'; // For local testing !!
+// var redirect_uri = 'https://evening-plains-21777.herokuapp.com/callback';
 
 app.set('view engine' , 'ejs')
     .set('views' , path.join(__dirname, 'views'))
@@ -35,10 +35,8 @@ var users = {};
 var sessionid = [];
 
 var stateKey = 'spotify_auth_state';
-var access_token,
-    refresh_token;
-
-io.on('connect', onConnect);
+// var access_token,
+//     refresh_token;
 
 app.get('/', index);
 app.get('/login', login);
@@ -48,13 +46,9 @@ app.delete('/:id/:user/' , unfollowPL);
 
 function index(req , res) {
     sessionid.push(req.sessionID);
-    console.log('sessionID: ' , req.sessionID);
+    // console.log('sessionID: ' , req.sessionID);
 
-    if (access_token) {
-        res.redirect('/playlists')
-    } else {
-        res.render('index');
-    }
+    res.render('index');
 }
 
 function login(req, res){
@@ -62,7 +56,7 @@ function login(req, res){
     res.cookie(stateKey, state);
 
     // Application requests authorization
-    var scope = 'user-read-private user-library-read user-library-modify playlist-modify-public playlist-modify-private';
+    var scope = 'playlist-read-private user-read-private user-library-read user-library-modify playlist-modify-public playlist-modify-private user-follow-read';
     res.redirect('https://accounts.spotify.com/authorize?' +
         querystring.stringify({
             response_type: 'code',
@@ -104,12 +98,12 @@ function callback(req, res) {
         // Get acces and refresh okens from Spotify
         request.post(authOptions, function(error, response, body) {
             if (!error && response.statusCode === 200) {
-                access_token = body.access_token;
-                refresh_token = body.refresh_token;
+                req.session.access_token = body.access_token;
+                req.session.refresh_token = body.refresh_token;
 
                 var options = {
                     url: 'https://api.spotify.com/v1/me',
-                    headers: { 'Authorization': 'Bearer ' + access_token },
+                    headers: { 'Authorization': 'Bearer ' + req.session.access_token },
                     json: true
                 };
 
@@ -129,50 +123,55 @@ function callback(req, res) {
 }
 
 function playlists(req, res) {
-    var playlistsArray = [];
 
-    var options = {
-        // available endpoints https://developer.spotify.com/web-api/using-scopes/
-        url: 'https://api.spotify.com/v1/me/playlists?offset=0&limit=25',
-        headers: { 'Authorization': 'Bearer ' + access_token },
-        json: true
-    };
-
-    rp(options)
-        .then(function(body) {
-            playlistsArray = body;
+    if (req.session.access_token) {
+        var playlistsArray = [];
+        var requestPlaylists = {
+            // available endpoints https://developer.spotify.com/web-api/using-scopes/
+            url: 'https://api.spotify.com/v1/me/playlists?offset=0&limit=5',
+            headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+            json: true
+        };
+    
+        rp(requestPlaylists)
+            .then(function(body) {
+                playlistsArray = body.items;
+    
+                // console.log(body.items[0]);
+    
                 res.render('playlist', {
-                    data: playlistsArray,
+                    data: body.items,
                     user: playlistOwner
                 });
 
-                if (access_token){
-                  setInterval(getPlaylists, 4000);
-                }
-          })
-          .catch(function(err) {
-              console.log('error when loading playlists');
-              res.redirect('/login');
-              throw err
-          });
+                setInterval(getPlaylists, 5000);
 
-    // setInterval purpose is to give the "real time" feeling
-    // this should be a temporary sollution untill I find a better one
-    function getPlaylists(){
-        rp(options)
-            .then(function(body) {
-              var difference = diff(playlistsArray, body); // Compare old with new data
-              if (difference) {
-                console.log('PLAYLIST CHANGES')
-                io.emit('playlists', {playlists: body});
-              }
-              playlistsArray = body;
-            })
-            .catch(function(err) {
-              console.log('error when loading playlists', err);
-              // res.redirect('/');
-            });
-      }
+              })
+              .catch(function(err) {
+                  console.log('error when loading playlists');
+                  res.redirect('/login');
+                  throw err
+              });
+    
+        // setInterval purpose is to give the "real time" feeling
+        // this should be a temporary sollution untill I find a better one
+        function getPlaylists(){
+            rp(requestPlaylists)
+                .then(function(body) {
+                  var difference = diff(playlistsArray, body); // Compare old with new data
+                  if (difference) {
+                    io.emit('playlists', {playlists: body});
+                  }
+                  playlistsArray = body;
+                })
+                .catch(function(err) {
+                  console.log('error when loading playlists', err);
+                  // res.redirect('/');
+                });
+          }
+    } else {
+        res.redirect('/');
+    }
 }
 
 function unfollowPL(req , res) {
@@ -180,7 +179,7 @@ function unfollowPL(req , res) {
 
     var unfollowOptions = {
         url: 'https://api.spotify.com/v1/users/' + playlistOwner + '/playlists/' + req.params.id,
-        headers: { 'Authorization': 'Bearer ' + access_token }
+        headers: { 'Authorization': 'Bearer ' + req.session.access_token }
     };
 
     rp(unfollowOptions)
@@ -193,79 +192,93 @@ function unfollowPL(req , res) {
       });
 }
 
-// SOCKET THINGIESS HERE
-function onConnect(socket) {
-    latestSocket = socket.id;
+app.get('/playlists/:id/:user/' , function(req, res ) {
+    var tracks = [];
 
-    console.log('USER CONNECTED:', socket.id);
+    var playlistOption = {
+        url: 'https://api.spotify.com/v1/users/' + req.params.user + '/playlists/' + req.params.id + '/tracks?market=NL',
+        headers: {'Authorization': 'Bearer ' + req.session.access_token},
+        json: true
+    };
 
-    updateUsers();
-    function updateUsers(){
-        users[socket.id] = socket;
-    }
+    rp(playlistOption)
+        .then(body => {
+            tracks = body;
 
-    socket.on('disconnect', function(){
-        console.log(socket.id , 'DISCONNECTED!');
-        delete users[socket.id];
-    });
+            if (req.session.access_token) {
+                res.render('tracks', {data: tracks});
+                // getGenre(req, tracks);
 
-    app.get('/playlists/:id/:user/' , getPlaylistTracks)
+            } else {
+                res.redirect('/')
+            }
 
-    function getPlaylistTracks (req, res) {
-        if (access_token){
-            var tracks = [];
+            return tracks;
+        })
+        .then(tracks => {
+            var genres = [];
+            var counts = {};
 
-            var playlistOption = {
-              url: 'https://api.spotify.com/v1/users/' + req.params.user + '/playlists/' + req.params.id + '/tracks',
-              headers: {'Authorization': 'Bearer ' + access_token},
-              json: true
-            };
+            // tracks.items.forEach(element => {
+            //     console.log(element.track.artists[0].id)
+            // });
 
-            rp(playlistOption)
-              .then(function (body) {
-                tracks = body;
+            function hasID(track) {
+                return track.track.artists[0].id != null;
+            }
 
-                if (access_token) {
-                  getGenre(tracks);
-                  res.render('tracks', {data: tracks});
-                }
+            var onlyWithID = tracks.items.filter(hasID);
 
-                return tracks;
-              })
-              .catch(function (err) {
-                console.log('couldnt get tracks', err);
-                throw err;
-              });
-          } else {
-          res.redirect('/login')
-        }
-    }
+            var promises = onlyWithID.map(function(e) {
+                var reqGenre = {
+                    url: 'https://api.spotify.com/v1/artists/' + e.track.artists[0].id,
+                    headers: {'Authorization': 'Bearer ' + req.session.access_token},
+                    json: true
+                };
 
-    function getGenre(tracks) {
-        var genres = [];
+                return rp(reqGenre)
+                    .then(body => {
+                        // console.log(body.genres)
 
-        var promises = tracks.items.map(function(e) {
-            var reqGenre = {
-                url: 'https://api.spotify.com/v1/artists/' + e.track.album.artists[0].id,
-                json: true
-            };
+                        return body.genres;
+                    })
+                    // .then(function(results) {
+                    //     genres.push(results);
+                        
+                    //     var allGenres = genres.reduce(function(prev, curr) {
+                    //         return prev.concat(curr);
+                    //     });
 
-            return rp(reqGenre)
-                .then(function (body) {
-                    return body.genres
-                })
-                .catch(function (err) {
-                    console.log('couldnt get genres', err);
-                    throw err
+                    //     var map = allGenres.reduce(function(prev, cur) {
+                    //         prev[cur] = (prev[cur] || 0) + 1;
+                    //         return prev;
+                    //       }, {});
+
+
+
+                    //     return map
+                    // })
+                    .catch(function (x, err) {
+                        console.log('couldnt get genres', err);
+                        throw err
+                    });
+            })
+
+            return Promise.all(promises).then(function (results) {
+                genres.push(results);
+
+                io.on('connection', socket => {
+                    socket.emit('genres' , {genres: genres});
                 });
-        });
 
-        return Promise.all(promises).then(function (results) {
-            genres.push(results);
-            socket.broadcast.to(latestSocket).emit('tracks', {genres: genres});
+                
+            });
+        })
+        .catch(err => {
+            console.log('couldnt get tracks', err);
+            throw err;
         });
-    }
-}
+});
 
 function generateRandomString(length) {
     var text = '';
