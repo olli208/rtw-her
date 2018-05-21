@@ -72,7 +72,7 @@
         console.log(data);
         var genres = [];
 
-        data.genres.forEach(function (e) {
+        data.genres[0].forEach(function (e) {
             e.map(function (x) {
                 genres.push(x);
                 return genres;
