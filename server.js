@@ -16,8 +16,7 @@ var diff = require('deep-diff').diff; // compare objects
 
 var client_id = process.env.client_id;
 var client_secret = process.env.client_secret;
-var redirect_uri = 'http://localhost:1000/callback'; // For local testing !!
-// var redirect_uri = 'https://evening-plains-21777.herokuapp.com/callback';
+var redirect_uri = process.env.redirect_uri; // For local testing !!
 
 app.set('view engine' , 'ejs')
     .set('views' , path.join(__dirname, 'views'))
