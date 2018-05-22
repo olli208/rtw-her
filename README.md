@@ -29,6 +29,9 @@ Data for the graph is sent to the specific socket.id. So each user sees data for
 - Get genres from all tracks in playlist
 - Unfollow playlist from within the app
 
+## Flow Chart
+![genres](README-img/spotify.png)
+
 ## Install the app
 To see it live and go trough the Oauth flow your self clone this repo, run the following command in the terminal
 ```
