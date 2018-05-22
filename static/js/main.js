@@ -98,14 +98,17 @@
             children: arr
         };
 
-        bubbleGraph(newArr);
+        bubbleGraph(newArr, data.playlistID);
     });
 
-    function bubbleGraph(data) {
+    function bubbleGraph(data, id) {
+        console.log(id);
+        console.log(d3.select('#watt' + id));
         var diameter = 200;
         var extra = 200;
 
-        var canvas = d3.select('.genres').append('svg')
+        if (d3.select('#watt' + id)) {
+            var canvas = d3.select('#watt' + id).append('svg')
             .attr('height', '140vh')
             .attr('width', '100%')
             .append('g')
@@ -146,8 +149,9 @@
             })
             .style('fill', '#fff')
             .attr('font-family' , "roboto, sans-serif")
-            .attr('x' , -14)
+            .attr('x' , -25)
             .attr('font-size' , '0.9em');
+        }
     }
 
 })();

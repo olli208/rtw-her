@@ -133,7 +133,7 @@ function playlists(req, res) {
         var playlistsArray = [];
         var requestPlaylists = {
             // available endpoints https://developer.spotify.com/web-api/using-scopes/
-            url: 'https://api.spotify.com/v1/me/playlists?offset=0&limit=5',
+            url: 'https://api.spotify.com/v1/me/playlists?offset=0&limit=6',
             headers: { 'Authorization': 'Bearer ' + req.session.access_token },
             json: true
         };
@@ -213,7 +213,10 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
             tracks = body;
 
             if (req.session.access_token) {
-                res.render('tracks', {data: tracks});
+                res.render('tracks', {
+                    data: tracks,
+                    playlistID: req.params.id
+                });
 
             } else {
                 res.redirect('/');
@@ -257,6 +260,12 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
                     })
         
                     return Promise.all(promises).then(function (results) {
+                        io.on('connection', socket => {
+                            socket.emit('genres' , {
+                                playlistID: req.params.id,
+                                genres: results
+                            });
+                        });
 
                         var formatGenre = {
                             playlistID: req.params.id,
@@ -267,13 +276,6 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
                         .save()
                         .then(function (data) {
                             console.log('LALALA IT WORKS??' , data);
-
-                            io.on('connection', socket => {
-                                socket.emit('genres' , {
-                                    playlistID: data.playlistID,
-                                    genres: data.genres
-                                });
-                            });
                         })
                         .catch(err => {
                             console.log(err)
@@ -281,7 +283,7 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
                     });
 
                 } else if (genres[0].genres.length > 1) {
-                    console.log('playlist DOES EXIST!' , genres);
+                    console.log('playlist DOES EXIST!');
 
                     io.on('connection', socket => {
                         socket.emit('genres' , {
