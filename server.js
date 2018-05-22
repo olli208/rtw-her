@@ -40,7 +40,6 @@ app.set('view engine' , 'ejs')
     }));
 
 // object where users are stored
-var playlistOwner;
 var users = {};
 var sessionid = [];
 
@@ -50,6 +49,8 @@ app.get('/', index);
 app.get('/login', login);
 app.get('/callback', callback);
 app.get('/playlists', playlists);
+app.get('/playlists/:id/:user/' , genres);
+
 app.delete('/:id/:user/' , unfollowPL);
 
 function index(req , res) {
@@ -114,9 +115,11 @@ function callback(req, res) {
                 };
 
                 // get user id
-                rp(options).then(function(body){playlistOwner = body.id});
-
-                res.redirect('/playlists');
+                rp(options).then((body) => {
+                    req.session.playlistOwner = body.id;
+                    res.redirect('/playlists');
+                });
+                
             } else {
                 // unless there's an error...
                 res.redirect('/#' +
@@ -140,13 +143,12 @@ function playlists(req, res) {
     
         rp(requestPlaylists)
             .then(function(body) {
-                playlistsArray = body.items;
-    
-                // console.log(body.items[0]);
-    
+                playlistsArray = body.items;   
+                // console.log(body.items);
+                
                 res.render('playlist', {
                     data: body.items,
-                    user: playlistOwner
+                    user: req.session.playlistOwner,
                 });
 
                 setInterval(getPlaylists, 5000);
@@ -163,11 +165,14 @@ function playlists(req, res) {
         function getPlaylists(){
             rp(requestPlaylists)
                 .then(function(body) {
-                  var difference = diff(playlistsArray, body); // Compare old with new data
-                  if (difference) {
-                    io.emit('playlists', {playlists: body});
-                  }
-                  playlistsArray = body;
+                    var difference = diff(playlistsArray, body); // Compare old with new data
+                    if (difference) {
+                        io.emit('playlists', {
+                            playlists: body,
+                            userID: req.session.playlistOwner
+                        });
+                    }
+                    playlistsArray = body;
                 })
                 .catch(function(err) {
                   console.log('error when loading playlists', err);
@@ -180,24 +185,29 @@ function playlists(req, res) {
 }
 
 function unfollowPL(req , res) {
-    console.log('UNFOLLOW: ' , req.params.id)
+    console.log('UNFOLLOW: ' , req.params.user,  req.params.id);
 
     var unfollowOptions = {
-        url: 'https://api.spotify.com/v1/users/' + playlistOwner + '/playlists/' + req.params.id,
+        // https://api.spotify.com/v1/users/{owner_id}/playlists/{playlist_id}/followers
+        url: 'https://api.spotify.com/v1/users/' + req.params.user + '/playlists/' + req.params.id + '/followers',
         headers: { 'Authorization': 'Bearer ' + req.session.access_token }
     };
 
-    rp(unfollowOptions)
-      .then(function() {
-        console.log('success playlist unfollowed')
-      })
-      .catch(function(err) {
-        console.log('Couldnt unfollow playlist');
-        throw err
-      });
+    request.del(unfollowOptions, function(err, response, body) {
+        console.log(response);
+
+        if (!err && response.statusCode === 200) {
+            console.log('success playlist unfollowed', response ,body)
+            // res.send('success playlist unfollowed', response);
+        } else {
+            console.log('ERROR FAIL', err)
+            res.send(err)
+            throw err
+        }
+    });
 }
 
-app.get('/playlists/:id/:user/' , function(req, res ) {
+function genres(req, res ) {
     var tracks = [];
 
     var playlistOption = {
@@ -299,7 +309,7 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
             console.log('couldnt get tracks', err);
             throw err;
         });
-});
+};
 
 function generateRandomString(length) {
     var text = '';

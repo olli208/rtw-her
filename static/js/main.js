@@ -2,13 +2,37 @@
     var socket = io();
     var music = [];
 
-    // document.querySelectorAll('.unfollow').forEach(function(e) {
-    //     e.addEventListener('click' , unfollow)
-    // })
+    if (document.querySelector('.playlistnames')) {
+        document.querySelector('.playlistnames').addEventListener('click' , function(e) {
+            // e.preventDefault();
 
-    // socket.on('test' ,function(data) {
-    //     var music = data;
-    // });
+            if (e.target.className == 'unfollow') {
+                var user = e.target.getAttribute("data-user");
+                var playlistID = e.target.getAttribute("data-id");
+
+                var request = new window.XMLHttpRequest();
+
+                request.open("DELETE", "/" + playlistID + '/' + user, true);
+                request.onload = function() {
+                    if (request.status >= 200 && request.status < 400) {
+                        // Success!
+                        console.log(request)
+                    } else {
+                        // No succes
+                        console.log("We reached our target server, but it returned an error");
+                    }
+                };
+
+                request.onerror = function () {
+                    // There was a connection error of some sort
+                    console.log('FATAL ERRORRRRRR')
+                };
+
+                request.send();
+            }
+
+        })
+    }
 
     socket.on('playlists' ,function(data) {
         var playlistNames = document.querySelector('.playlistnames');
@@ -35,41 +59,13 @@
                     + '<h3>' + items[key].name + '</h3>'
                     + '<img class="albumImage" src=' + items[key].images[0].url + '>'
                     + '</a>'
-                    + '<button class="unfollow">unfollow</button>';
+                    + '<button class="unfollow" data-id="' + items[key].id + '" data-user="' + items[key].owner.id + '">unfollow</button>';
                 playlistNames.appendChild(li);
             }
         }
     });
 
-    // function unfollow(e) {
-    //     var select = e.target.parentNode.querySelector('a')
-    //     var playlistID = select.href.split("/")[4]
-    //     var user = select.href.split("/")[5]
-    //     console.log(playlistID , user)
-
-    //     var request = new window.XMLHttpRequest();
-
-    //     request.open("DELETE", "http://localhost:1000/" + playlistID + '/' + user, true);
-    //     request.onload = function() {
-    //         if (request.status >= 200 && request.status < 400) {
-    //           // Success!
-    //           console.log(request)
-    //         } else {
-    //           // No succes
-    //           console.log("We reached our target server, but it returned an error");
-    //         }
-    //     };
-
-    //     request.onerror = function () {
-    //         // There was a connection error of some sort
-    //         console.log('FATAL ERRORRRRRR')
-    //     };
-
-    //     request.send();
-    // }
-
     socket.on('genres', function(data) {
-        console.log(data);
         var genres = [];
 
         data.genres.forEach(function (e) {
@@ -102,8 +98,6 @@
     });
 
     function bubbleGraph(data, id) {
-        console.log(id);
-        console.log(d3.select('#watt' + id));
         var diameter = 200;
         var extra = 200;
 

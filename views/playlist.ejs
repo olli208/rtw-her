@@ -7,7 +7,6 @@
 </div>
 
 <section class="playlists">
-    <button class="refresh"></button>
     <div class="playlistnames">
         <% data.forEach(function(playlist){ %>
         <li class="albumName">
@@ -15,7 +14,7 @@
                 <h3><%= playlist.name %></h3>
                 <img class="albumImage" src="<%= playlist.images[0].url %>">
             </a>
-            <button class="unfollow">unfollow</button>
+           <button class="unfollow" data-id="<%= playlist.id %>" data-user="<%= playlist.owner.id %>">unfollow</button>
         </li>
         <% }) %>
     </div>
