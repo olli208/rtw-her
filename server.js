@@ -13,6 +13,17 @@ var querystring = require('querystring');
 var cookieParser = require('cookie-parser'); //parses cookier (? from spotify)
 var dotenv = require('dotenv').config(); //secret stuff
 var diff = require('deep-diff').diff; // compare objects
+var mongoose = require('mongoose');
+
+mongoose.connect(process.env.DATABASE)
+mongoose.Promise = global.Promise;
+
+mongoose.connection.on('error' , function (err) {
+  console.log('Something went wrong with MONGODB ->' , err.message)
+})
+
+require('./models/Genres');
+var Genres = mongoose.model('Genres');
 
 var client_id = process.env.client_id;
 var client_secret = process.env.client_secret;
@@ -34,8 +45,6 @@ var users = {};
 var sessionid = [];
 
 var stateKey = 'spotify_auth_state';
-// var access_token,
-//     refresh_token;
 
 app.get('/', index);
 app.get('/login', login);
@@ -45,8 +54,6 @@ app.delete('/:id/:user/' , unfollowPL);
 
 function index(req , res) {
     sessionid.push(req.sessionID);
-    // console.log('sessionID: ' , req.sessionID);
-
     res.render('index');
 }
 
@@ -122,7 +129,6 @@ function callback(req, res) {
 }
 
 function playlists(req, res) {
-
     if (req.session.access_token) {
         var playlistsArray = [];
         var requestPlaylists = {
@@ -200,78 +206,92 @@ app.get('/playlists/:id/:user/' , function(req, res ) {
         json: true
     };
 
+    var playlistGenres = Genres.find({'playlistID': req.params.id });
+
     rp(playlistOption)
         .then(body => {
             tracks = body;
 
             if (req.session.access_token) {
                 res.render('tracks', {data: tracks});
-                // getGenre(req, tracks);
 
             } else {
-                res.redirect('/')
+                res.redirect('/');
             }
 
             return tracks;
         })
         .then(tracks => {
-            var genres = [];
-            var counts = {};
 
-            // tracks.items.forEach(element => {
-            //     console.log(element.track.artists[0].id)
-            // });
+            var playlistGenres = Genres.find({'playlistID': req.params.id });
 
-            function hasID(track) {
-                return track.track.artists[0].id != null;
-            }
+            playlistGenres.then(genres => {
 
-            var onlyWithID = tracks.items.filter(hasID);
+                if (genres.length < 1) {
+                    console.log('playlist DOES NOT exist so we make it!');
 
-            var promises = onlyWithID.map(function(e) {
-                var reqGenre = {
-                    url: 'https://api.spotify.com/v1/artists/' + e.track.artists[0].id,
-                    headers: {'Authorization': 'Bearer ' + req.session.access_token},
-                    json: true
-                };
-
-                return rp(reqGenre)
-                    .then(body => {
-                        // console.log(body.genres)
-
-                        return body.genres;
+                    var genres = [];
+                    var counts = {};
+        
+                    function hasID(track) {
+                        return track.track.artists[0].id != null;
+                    }
+        
+                    var onlyWithID = tracks.items.filter(hasID);
+        
+                    var promises = onlyWithID.map(function(e) {
+                        var reqGenre = {
+                            url: 'https://api.spotify.com/v1/artists/' + e.track.artists[0].id,
+                            headers: {'Authorization': 'Bearer ' + req.session.access_token},
+                            json: true
+                        };
+        
+                        return rp(reqGenre)
+                            .then(body => {
+                                return body.genres;
+                            })
+                            .catch(function (x, err) {
+                                console.log('couldnt get genres', err);
+                                throw err
+                            });
                     })
-                    // .then(function(results) {
-                    //     genres.push(results);
-                        
-                    //     var allGenres = genres.reduce(function(prev, curr) {
-                    //         return prev.concat(curr);
-                    //     });
+        
+                    return Promise.all(promises).then(function (results) {
 
-                    //     var map = allGenres.reduce(function(prev, cur) {
-                    //         prev[cur] = (prev[cur] || 0) + 1;
-                    //         return prev;
-                    //       }, {});
+                        var formatGenre = {
+                            playlistID: req.params.id,
+                            genres: results
+                        }
 
+                        new Genres(formatGenre)
+                        .save()
+                        .then(function (data) {
+                            console.log('LALALA IT WORKS??' , data);
 
-
-                    //     return map
-                    // })
-                    .catch(function (x, err) {
-                        console.log('couldnt get genres', err);
-                        throw err
+                            io.on('connection', socket => {
+                                socket.emit('genres' , {
+                                    playlistID: data.playlistID,
+                                    genres: data.genres
+                                });
+                            });
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        });
                     });
+
+                } else if (genres[0].genres.length > 1) {
+                    console.log('playlist DOES EXIST!' , genres);
+
+                    io.on('connection', socket => {
+                        socket.emit('genres' , {
+                            playlistID: genres[0].playlistID,
+                            genres: genres[0].genres
+                        });
+                    });
+
+                }
             })
-
-            return Promise.all(promises).then(function (results) {
-                genres.push(results);
-
-                io.on('connection', socket => {
-                    socket.emit('genres' , {genres: genres});
-                });
-
-                
-            });
         })
         .catch(err => {
             console.log('couldnt get tracks', err);
@@ -290,6 +310,7 @@ function generateRandomString(length) {
 }
 
 var port = process.env.PORT || 1000;
+
 http.listen(port, function (){
     console.log('server is running: on: ' + port);
 });

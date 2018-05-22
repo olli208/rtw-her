@@ -21,7 +21,8 @@
     "request": "~2.34.0",
     "request-promise": "^4.2.1",
     "socket.io": "*",
-    "xo": "^0.18.1"
+    "xo": "^0.18.1",
+    "mongoose": "4.10.6"
   },
   "devDependencies": {
     "standard": "^10.0.1",
