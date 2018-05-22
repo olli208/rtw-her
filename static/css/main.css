@@ -31,6 +31,7 @@ h1 {
     font-size: 3em;
     justify-content: center;
     color: #fff;
+    line-height: 1.2em;
 }
 
 h2 {
@@ -92,6 +93,7 @@ p {
     border-radius: 500px;
     letter-spacing: 2px;
     text-transform: uppercase;
+    margin-top: .5rem;
 }
 
 .spotify-btn a{
