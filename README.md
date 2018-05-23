@@ -16,7 +16,7 @@ After the user succesfully logs in with their account a socket connection is mad
 ![playlist](README-img/playlists.png)
 
 
-In the meantime my server is requesting the Spotify API for data. On the server this data is compared to the first time and when there are changes, the data gets sent to the client. This happens with sockets so the data changes real time. To figure out if there any changes to the playlist I use [this](https://www.npmjs.com/package/deep-diff) super handy NPM package.
+In the meantime my server is requesting the Spotify API for data. On the server this data is compared to the first time and when there are changes, the data gets sent to the client. This happens with sockets so the data changes real time. To figure out if there any changes to the playlist I use [this](https://www.npmjs.com/package/deep-diff) super handy NPM package. When there are changes, like I followed a new playlist OR I unfollow one, the updates itself in near realtime.
 
 Once a user clicks on a playlist, they get a page with the tracks of the playlist. For every track I do another request to get the genres. But before that I check if the playlist is stored in my mongoDB database first. By using [D3](https://d3js.org/) I create a bubble graph to illustrate how many genres there are in a playlist.
 
@@ -61,6 +61,12 @@ The site will be on [http://localhost:1000](http://localhost:1000/) or whatever 
 
 ## Extra challenges
 A user can unfollow a playlist thanks to a DELETE request to the api. This also works in realtime so the result is imediatly visible. I also added a mongoDB so we don't request everytime a user clicks on a playlist.
+
+## Wishlist
+- Better UI/UX when unfollowing a playlist.
+- Better solution for requesting the API every 5 seconds.
+- Update playlist in mongoDB when it changes.
+- Find a way to make the graphs responsive
 
 ## source
 - [Web API Authorization Guide](https://developer.spotify.com/web-api/authorization-guide/)
