@@ -26,7 +26,7 @@ Once a user clicks on a playlist, they get a page with the tracks of the playlis
 Data for the graph is sent to the specific socket.id. So each user sees data for their selected playlist.
 
 ## Features 
-- Get playlist
+- Get playlist in realtime
 - Get genres from all tracks in playlist
 - Unfollow playlist from within the app
 
