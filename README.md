@@ -44,7 +44,7 @@ From the root of the directory run
 npm install
 ```
 
-Then change these to your own you can get them [here](https://developer.spotify.com/)
+Then create an .env file in the root of the project and add these to with your own data. You can get them [here](https://developer.spotify.com/)
 ```
 var client_id = <client_id>
 var client_secret = <client_secret>
