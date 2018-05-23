@@ -2,7 +2,7 @@
 
 ## Spotify realtime data
 
-[Link to site (sockets dont work for some reason so you can only see how the app looks)](https://arcane-castle-34978.herokuapp.com/)
+[Link to site](https://limitless-mountain-31693.herokuapp.com/)
 
 ## About 
 With this app a user can load their playlists and see the genres in them in a handy bubble chart. A user can sign in with the spotify Oauth flow and the application receives the users data. 
