@@ -15,6 +15,8 @@ var dotenv = require('dotenv').config(); //secret stuff
 var diff = require('deep-diff').diff; // compare objects
 var mongoose = require('mongoose');
 
+const isOnline = require('is-online');
+
 mongoose.connect(process.env.DATABASE)
 mongoose.Promise = global.Promise;
 
@@ -163,6 +165,7 @@ function playlists(req, res) {
         // setInterval purpose is to give the "real time" feeling
         // this should be a temporary sollution untill I find a better one
         function getPlaylists(){
+
             rp(requestPlaylists)
                 .then(function(body) {
                     var difference = diff(playlistsArray, body); // Compare old with new data
@@ -176,6 +179,7 @@ function playlists(req, res) {
                 })
                 .catch(function(err) {
                   console.log('error when loading playlists', err);
+                  socket.emit('offline' , err );
                   // res.redirect('/');
                 });
           }

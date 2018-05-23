@@ -34,6 +34,11 @@
         })
     }
 
+    socket.on('offline' ,function(data) { 
+        console.log(data);
+        alert("Something stopped working!");
+    });
+
     socket.on('playlists' ,function(data) {
         var playlistNames = document.querySelector('.playlistnames');
 
