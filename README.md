@@ -13,8 +13,6 @@ What I have now is a server which allows the user go trough the Oauth flow from 
 ```
 After the user succesfully logs in with their account a socket connection is made which we can send JSON data from the on the server to the client. A list of playlist is shown like below.
 
-![playlist](README-img/playlists.png)
-
 ### realtime
 In the meantime my server is requesting the Spotify API for data every few seconds. On the server this data is compared to the first time and when there are changes, the data gets sent to the client. This happens with sockets so the data changes real time. To figure out if there any changes to the playlist I use [this](https://www.npmjs.com/package/deep-diff) super handy NPM package. When there are changes, like I followed a new playlist OR I unfollow one, the updates itself in near realtime.
 
